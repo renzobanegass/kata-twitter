@@ -1,5 +1,5 @@
 
-# Twitter Kata#
+# Twitter Kata #
 
 # Description #
 The goal of this kata is to practice Clean Architecture driven by Outside-in TDD.
