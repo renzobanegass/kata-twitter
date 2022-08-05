@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="warn" packages="org.apache.logging.log4j.core,io.sentry.log4j2">
+    <appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [%c{1}:%L] - %msg%n"/>
+        </Console>
+
+        <Console name="ConsoleJSONAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern='{"level":"%p", "message":"%m", "loggerName":"%c:%L","timestamp":"%d{UNIX_MILLIS}","thread":"%t"} %throwable{none} %n' />
+        </Console>
+
+        <Sentry name="Sentry" />
+        <Null name="NullAppender"/>
+    </appenders>
+
+    <loggers>
+        <logger name="katatwitterrenzo" level="${L4J_LEVEL_ETERMAX:-INFO}" />
+        <root level="${env:L4J_LEVEL:-INFO}">
+            <appender-ref ref="${env:L4J_APPENDER:-ConsoleJSONAppender}"/>
+            <appender-ref ref="${env:L4J_ERROR_APPENDER:-NullAppender}" level="ERROR"/>
+        </root>
+    </loggers>
+</configuration>

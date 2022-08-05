@@ -1,0 +1,30 @@
+
+app:
+  image: "${DOCKER_IMAGE}"
+  deployedAt: "${DEPLOYED_TIME}"
+
+  # Port number where this application will listen for requests
+  port: 8080
+
+http:
+  # Max milliseconds to establish an HTTP connection - default 10 seconds.
+  # A value of 0 represents infinite, while -1 represents system's default value.
+  connectTimeoutMs: 1000
+
+  # Max milliseconds for the connection manager to start a request - default 20 seconds.
+  # A value of 0 represents infinite, while -1 represents system's default value.
+  connectionRequestTimeoutMs: 1000
+
+  # Maximum number of socket connections.
+  maxConnTotal: 100
+
+  # Maximum number of requests for a specific endpoint route.
+  maxConnPerRoute: 100
+
+platformUrl: "https://api.platform-staging.etermax.com"
+
+persistence:
+  type: IN_MEMORY
+  redis:
+    endpoint: "localhost:6379"
+    password: "local_redis"

@@ -1,0 +1,166 @@
+plugins {
+    id "java"
+    id "application"
+    id "org.jetbrains.kotlin.jvm" version "1.6.10"
+    id "org.jetbrains.kotlin.plugin.serialization" version "1.6.10"
+    id "com.github.ben-manes.versions" version "0.39.0"
+}
+
+group "katatwitterrenzo"
+version '1.5.1'
+
+mainClassName = "katatwitterrenzo.MainKt"
+
+sourceCompatibility = 1.8
+
+repositories {
+    maven { url "https://mavenrepo.etermax.com/artifactory/repo" }
+    mavenCentral()
+}
+
+ext {
+    ktorV = '1.6.8'
+    kotlinV = '1.6.10'
+    coroutinesV = '1.6.0'
+    kortCoTestV = '1.6.0'
+    junitV = "5.8.2"
+    logbackV = "1.2.3"
+    prometheusV = '0.15.0'
+    mockkV = '1.12.3'
+    hopliteVersion = "1.4.16"
+    log4JVersion = '2.17.1'
+    sentryVersion = "1.7.30"
+    lettuceVersion= '6.1.8.RELEASE'
+    kotlinxJsonVersion = '1.3.2'
+    ktorPluginVersion = "1.1.1"
+    dynamoDBVersion = "2.13.69"
+}
+
+
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinV"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesV"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutinesV"
+    implementation "aws.sdk.kotlin:dynamodb:0.15.2-beta"
+    //implementation "software.amazon.awssdk:sts:$dynamoDBVersion"
+
+
+    // Redis client
+    implementation "io.lettuce:lettuce-core:$lettuceVersion"
+
+    // HTTP Server and Client
+    implementation "io.ktor:ktor-server-core:$ktorV"
+    implementation "io.ktor:ktor-server-netty:$ktorV"
+    implementation "io.ktor:ktor-client-core:$ktorV"
+    implementation "io.ktor:ktor-client-apache:$ktorV"
+    implementation "io.ktor:ktor-client-jetty:$ktorV"
+    implementation "io.ktor:ktor-client-logging:$ktorV"
+    implementation "io.ktor:ktor-client-logging-jvm:$ktorV"
+
+    // JSON
+    implementation "io.ktor:ktor-client-json:$ktorV"
+    implementation "io.ktor:ktor-client-serialization-jvm:$ktorV"
+    implementation "io.ktor:ktor-serialization:$ktorV"
+
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxJsonVersion"
+
+    implementation "com.etermax.ktor:ktor-plugins:$ktorPluginVersion"
+}
+
+dependencies {
+    // Metrics
+    implementation "io.prometheus:simpleclient:$prometheusV"
+}
+
+dependencies {
+    // Configuration loader
+    implementation "com.sksamuel.hoplite:hoplite-core:$hopliteVersion"
+    implementation "com.sksamuel.hoplite:hoplite-yaml:$hopliteVersion"
+}
+
+dependencies {
+    implementation "org.apache.logging.log4j:log4j-api:$log4JVersion"
+    implementation "org.apache.logging.log4j:log4j-core:$log4JVersion"
+    implementation "org.apache.logging.log4j:log4j-slf4j-impl:$log4JVersion"
+    implementation "io.sentry:sentry-log4j2:$sentryVersion"
+}
+
+dependencies {
+    // Test
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitV"
+    testImplementation "org.junit.jupiter:junit-jupiter-engine:$junitV"
+    testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junitV"
+
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlinV"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$kortCoTestV"
+    testImplementation "io.mockk:mockk:$mockkV"
+    testImplementation "org.assertj:assertj-core:3.22.0"
+
+    // HTTP test support
+    testImplementation "io.ktor:ktor-client-mock:$ktorV"
+    testImplementation "io.ktor:ktor-client-mock-jvm:$ktorV"
+    testImplementation "io.ktor:ktor-server-test-host:$ktorV"
+
+    // Redis for tests
+    testImplementation "it.ozimov:embedded-redis:0.7.3"
+}
+
+dependencies {
+    // Architecture checks
+    testImplementation 'com.tngtech.archunit:archunit:0.23.1'
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.freeCompilerArgs += [
+            "-Xopt-in=kotlin.RequiresOptIn",
+            "-Xopt-in=kotlin.Experimental",
+            "-Xopt-in=kotlin.time.ExperimentalTime",
+            "-Xopt-in=kotlinx.coroutines.ObsoleteCoroutinesApi",
+            "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
+            "-Xopt-in=kotlinx.serialization.ExperimentalSerializationApi",
+            "-Xopt-in=io.lettuce.core.ExperimentalLettuceCoroutinesApi"
+    ]
+
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.freeCompilerArgs += [
+            "-Xopt-in=kotlin.RequiresOptIn",
+            "-Xopt-in=kotlin.Experimental",
+            "-Xopt-in=kotlin.time.ExperimentalTime",
+            "-Xopt-in=kotlinx.coroutines.ObsoleteCoroutinesApi",
+            "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
+            "-Xopt-in=io.lettuce.core.ExperimentalLettuceCoroutinesApi"
+    ]
+}
+
+test {
+    useJUnitPlatform{
+    }
+
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
+
+    minHeapSize = "128M"
+    maxHeapSize = "256M"
+}
+
+apply from: 'dependencies.gradle.kts'
+
+// Versions plugins Configuration
+def isNonStable = { String version ->
+    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { it -> version.toUpperCase().contains(it) }
+    def regex = /^[0-9,.v-]+(-r)?$/
+    return !stableKeyword && !(version ==~ regex)
+}
+
+tasks.named("dependencyUpdates").configure {
+    outputFormatter = "json"
+    // reject all non stable versions
+    rejectVersionIf {
+        isNonStable(it.candidate.version)
+    }
+}
